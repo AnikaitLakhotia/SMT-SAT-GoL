@@ -1,5 +1,6 @@
 from reverse_gol import reverse_gol, generate_combinations
 from z3 import *
+import time
 
 if __name__ == "__main__":
 
@@ -20,10 +21,19 @@ if __name__ == "__main__":
     # Add constraints to the solver
     solver.add(And(eval(reverse_gol_expr) == True))
 
-    # Check satisfiability
-    if solver.check() == sat:
+    # Measure solving time(more accurate than solver statistics) and check satisfiability
+    start_time = time.time()
+    result = solver.check()
+    end_time = time.time()
+
+    if result == sat:
         model = solver.model()
         print(model)
         print("Satisfiable!")
     else:
         print("Unsatisfiable!")
+    elapsed_time = end_time - start_time
+    print(f"Elapsed time: {elapsed_time} seconds")
+
+    #Solver Statistics
+    print(solver.statistics())
