@@ -35,6 +35,7 @@ def reverse_gol(input_array, output_variables, k_range, n, m, k):
                     else:
                         to_add = 'h'
                     output.append(to_add)
+        return output
         # p = f'c{a - 1}_{b - 1}_{c - 1}' if a - \
         #     1 != 0 and b - 1 != 0 and c - 1 >= 0 else 'h'
         # q = f'c{a - 1}_{b}_{c - 1}' if a - 1 != 0 and c - 1 >= 0 else 'h'
@@ -116,23 +117,14 @@ def reverse_gol(input_array, output_variables, k_range, n, m, k):
             int: kth element.
 
         """
-        # Create a matrix with elements in the format "c{i+1}_{j+1}_{c-1}"
-        matrix = []
-        for i in range(n):
-            row = []
-            for j in range(m):
-                element = f"c{i + 1}_{j + 1}_{c - 1}"
-                row.append(element)
-            matrix.append(row)
-        # Flatten the matrix into a single list
-        flattened_matrix = [element for row in matrix for element in row]
-
         # Check if k is a valid index
-        if k < 1 or k > len(flattened_matrix):
-            return "Invalid index"
+        if k < 1 or k > len(n * m):
+            raise Exception("Invalid index")
 
-        # Return the k-th element (index k-1) from the flattened matrix
-        return flattened_matrix[k - 1]
+        row_index = (k - 1) // m
+        col_index = (k - 1) % m
+
+        return f"c{row_index + 1}_{col_index + 1}_{c - 1}"
 
     def smt_expression(arr, n, m, k):
         """
