@@ -18,20 +18,36 @@ def reverse_gol(input_array, output_variables, k_range, n, m, k):
             tuple: Tuple containing the generated expressions.
         """
         e = get_kth_element(k, o, n, m)
+        new_c = c - 1
         a, b, c = map(int, e[1:].split('_'))
-        p = f'c{a - 1}_{b - 1}_{c - 1}' if a - \
-            1 != 0 and b - 1 != 0 and c - 1 >= 0 else 'h'
-        q = f'c{a - 1}_{b}_{c - 1}' if a - 1 != 0 and c - 1 >= 0 else 'h'
-        r = f'c{a - 1}_{b + 1}_{c - 1}' if a - \
-            1 != 0 and b + 1 <= m and c - 1 >= 0 else 'h'
-        s = f'c{a}_{b + 1}_{c - 1}' if b + 1 <= m and c - 1 >= 0 else 'h'
-        t = f'c{a + 1}_{b + 1}_{c - 1}' if a + \
-            1 <= n and b + 1 <= m and c - 1 >= 0 else 'h'
-        u = f'c{a + 1}_{b}_{c - 1}' if a + 1 <= n and c - 1 >= 0 else 'h'
-        v = f'c{a + 1}_{b - 1}_{c - 1}' if a + \
-            1 <= n and b - 1 != 0 and c - 1 >= 0 else 'h'
-        w = f'c{a}_{b - 1}_{c - 1}' if b - 1 != 0 and c - 1 >= 0 else 'h'
-        return a, b, c, p, q, r, s, t, u, v, w
+
+        def in__bounds(m, n, c):
+            return c >= 1 and 0 <= a <= n and 0 <= b <= m
+        output = [a, b, c]
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i != 0 or j != 0:
+                    new_a = i + a
+                    new_b = j + b
+                    to_add = ""
+                    if in__bounds(new_a, new_b, new_c):
+                        to_add = f'c{a - 1}_{b - 1}_{new_c}'
+                    else:
+                        to_add = 'h'
+                    output.append(to_add)
+        # p = f'c{a - 1}_{b - 1}_{c - 1}' if a - \
+        #     1 != 0 and b - 1 != 0 and c - 1 >= 0 else 'h'
+        # q = f'c{a - 1}_{b}_{c - 1}' if a - 1 != 0 and c - 1 >= 0 else 'h'
+        # r = f'c{a - 1}_{b + 1}_{c - 1}' if a - \
+        #     1 != 0 and b + 1 <= m and c - 1 >= 0 else 'h'
+        # s = f'c{a}_{b + 1}_{c - 1}' if b + 1 <= m and c - 1 >= 0 else 'h'
+        # t = f'c{a + 1}_{b + 1}_{c - 1}' if a + \
+        #     1 <= n and b + 1 <= m and c - 1 >= 0 else 'h'
+        # u = f'c{a + 1}_{b}_{c - 1}' if a + 1 <= n and c - 1 >= 0 else 'h'
+        # v = f'c{a + 1}_{b - 1}_{c - 1}' if a + \
+        #     1 <= n and b - 1 != 0 and c - 1 >= 0 else 'h'
+        # w = f'c{a}_{b - 1}_{c - 1}' if b - 1 != 0 and c - 1 >= 0 else 'h'
+        # return a, b, c, p, q, r, s, t, u, v, w
 
     def to_clause(a, b, c, p, q, r, s, t, u, v, w):
         """
