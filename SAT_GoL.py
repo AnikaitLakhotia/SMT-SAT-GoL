@@ -19,7 +19,8 @@ if __name__ == "__main__":
 
     reverse_gol_expr = reverse_gol([c1_1_2,c1_2_2,c2_1_2,c2_2_2],
                                    {'c1_2': True,'c2_2':True, 'c1_1': True,'c2_1': False},2, 2, 2)
-    formula = And(eval(reverse_gol_expr) == True)
+    formula = eval(reverse_gol_expr)
+    print(formula)
 
     # Apply Tactics
     tseitin_cnf_tactic = Tactic('tseitin-cnf')
