@@ -1,8 +1,6 @@
 from z3 import *
 
 def reverse_gol(input_array, output_variables, n, m, k):
-
-
     def generate_neighboring_cells(k, o, ca_b_c, n, m):
         """
         Generate neighboring cells in previous generation based on given parameters.
@@ -29,7 +27,6 @@ def reverse_gol(input_array, output_variables, n, m, k):
         w = f'c{a}_{b - 1}_{c - 1}' if b - 1 != 0 and c - 1 >= 0 else 'h'
         return a, b, c, p, q, r, s, t, u, v, w
 
-
     def to_clause(a, b, c, p, q, r, s, t, u, v, w):
         """
         Make a Z3 clause from the given cells(variables).
@@ -53,7 +50,7 @@ def reverse_gol(input_array, output_variables, n, m, k):
 
         # The large clause is constructed here as a multi-line string.
         return f"""
-             And(Not(h), c{a}_{b}_{c} == And(Or(And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, {v}, {w}),
+             And(Not(h), And(Implies(Or(And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, {v}, {w}),
                 And(Not({p}), {q}, Not({r}), {s}, {t}, {u}, {v}, {w}),
                 And(Not({p}), {q}, {r}, Not({s}), {t}, {u}, {v}, {w}),
                 And(Not({p}), {q}, {r}, {s}, Not({t}), {u}, {v}, {w}),
@@ -80,8 +77,8 @@ def reverse_gol(input_array, output_variables, n, m, k):
                 And({p}, {q}, {r}, {s}, Not({t}), {u}, {v}, Not({w})),
                 And({p}, {q}, {r}, {s}, {t}, Not({u}), Not({v}), {w}),
                 And({p}, {q}, {r}, {s}, {t}, Not({u}), {v}, Not({w})),
-                And({p}, {q}, {r}, {s}, {t}, {u}, Not({v}), Not({w})),
-                And(Not({p}), Not({q}), Not({r}), {s}, {t}, {u}, {v}, {w}),
+                And({p}, {q}, {r}, {s}, {t}, {u}, Not({v}), Not({w}))), c{a}_{b}_{c} == c{a}_{b}_{c - 1}),
+                Implies(Or(And(Not({p}), Not({q}), Not({r}), {s}, {t}, {u}, {v}, {w}),
                 And(Not({p}), Not({q}), {r}, Not({s}), {t}, {u}, {v}, {w}),
                 And(Not({p}), Not({q}), {r}, {s}, Not({t}), {u}, {v}, {w}),
                 And(Not({p}), Not({q}), {r}, {s}, {t}, Not({u}), {v}, {w}),
@@ -136,13 +133,67 @@ def reverse_gol(input_array, output_variables, n, m, k):
                 And({p}, {q}, {r}, {s}, Not({t}), Not({u}), Not({v}), {w}),
                 And({p}, {q}, {r}, {s}, Not({t}), Not({u}), {v}, Not({w})),
                 And({p}, {q}, {r}, {s}, Not({t}), {u}, Not({v}), Not({w})),
-                And({p}, {q}, {r}, {s}, {t}, Not({u}), Not({v}), Not({w}))
-            )))"""
-
+                And({p}, {q}, {r}, {s}, {t}, Not({u}), Not({v}), Not({w}))), c{a}_{b}_{c}),
+                Implies(And(Not(c{a}_{b}_{c - 1})), Not(Or(And(Not({p}), Not({q}), Not({r}), {s}, {t}, {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, Not({s}), {t}, {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, Not({t}), {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, Not({u}), {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, Not({v}), {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, Not({r}), Not({s}), {t}, {u}, {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, Not({t}), {u}, {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, Not({u}), {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, {u}, Not({v}), {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, Not({s}), Not({t}), {u}, {v}, {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, Not({u}), {v}, {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, {u}, Not({v}), {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), Not({u}), {v}, {w}),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), {u}, Not({v}), {w}),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, {t}, Not({u}), Not({v}), {w}),
+                And(Not({p}), {q}, {r}, {s}, {t}, Not({u}), {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, Not({q}), Not({r}), Not({s}), {t}, {u}, {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, Not({t}), {u}, {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, Not({u}), {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, {u}, Not({v}), {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, Not({s}), Not({t}), {u}, {v}, {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, Not({u}), {v}, {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, {u}, Not({v}), {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, Not({t}), Not({u}), {v}, {w}),
+                And({p}, Not({q}), {r}, {s}, Not({t}), {u}, Not({v}), {w}),
+                And({p}, Not({q}), {r}, {s}, Not({t}), {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, {t}, Not({u}), Not({v}), {w}),
+                And({p}, Not({q}), {r}, {s}, {t}, Not({u}), {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, Not({r}), Not({s}), Not({t}), {u}, {v}, {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, Not({u}), {v}, {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, {u}, Not({v}), {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, {u}, {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, Not({t}), Not({u}), {v}, {w}),
+                And({p}, {q}, Not({r}), {s}, Not({t}), {u}, Not({v}), {w}),
+                And({p}, {q}, Not({r}), {s}, Not({t}), {u}, {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, {t}, Not({u}), Not({v}), {w}),
+                And({p}, {q}, Not({r}), {s}, {t}, Not({u}), {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, Not({s}), Not({t}), Not({u}), {v}, {w}),
+                And({p}, {q}, {r}, Not({s}), Not({t}), {u}, Not({v}), {w}),
+                And({p}, {q}, {r}, Not({s}), Not({t}), {u}, {v}, Not({w})),
+                And({p}, {q}, {r}, Not({s}), {t}, Not({u}), Not({v}), {w}),
+                And({p}, {q}, {r}, Not({s}), {t}, Not({u}), {v}, Not({w})),
+                And({p}, {q}, {r}, Not({s}), {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, {s}, Not({t}), Not({u}), Not({v}), {w}),
+                And({p}, {q}, {r}, {s}, Not({t}), Not({u}), {v}, Not({w})),
+                And({p}, {q}, {r}, {s}, Not({t}), {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, {s}, {t}, Not({u}), Not({v}), Not({w})))), Not(c{a}_{b}_{c}))))"""
 
     def get_kth_element(k, c, n, m):
         """
-        Find the kth element(when matrix is flattened) of a nxm matrix in it's previous generation.
+        Find the kth element(when matrix is flattened) of a nxm matrix in its previous generation.
 
         Args:
             k (int): Element number when matrix is flattened.
@@ -153,24 +204,13 @@ def reverse_gol(input_array, output_variables, n, m, k):
             int: kth element.
 
         """
-        # Create a matrix with elements in the format "c{i+1}_{j+1}_{c-1}"
-        matrix = []
-        for i in range(n):
-            row = []
-            for j in range(m):
-                element = f"c{i + 1}_{j + 1}_{c - 1}"
-                row.append(element)
-            matrix.append(row)
-        # Flatten the matrix into a single list
-        flattened_matrix = [element for row in matrix for element in row]
-
         # Check if k is a valid index
-        if k < 1 or k > len(flattened_matrix):
-            return "Invalid index"
+        if k < 1 or k > n * m:
+            raise Exception("Invalid index")
 
-        # Return the k-th element (index k-1) from the flattened matrix
-        return flattened_matrix[k - 1]
-
+        row_index = (k - 1) // m
+        col_index = (k - 1) % m
+        return f"c{row_index + 1}_{col_index + 1}_{c - 1}"
 
     def smt_expression(arr, n, m, k):
         """
@@ -192,7 +232,8 @@ def reverse_gol(input_array, output_variables, n, m, k):
         while k > 1:
             for index, element in enumerate(arr):
                 # Generate neighboring cells and convert to a clause
-                a, b, c, p, q, r, s, t, u, v, w = generate_neighboring_cells(index + 1, k, element, n, m)
+                a, b, c, p, q, r, s, t, u, v, w = generate_neighboring_cells(
+                    index + 1, k, element, n, m)
                 clause = to_clause(a, b, c, p, q, r, s, t, u, v, w)
                 clauses.append(clause)  # Add the clause to the list of clauses
 
@@ -200,7 +241,6 @@ def reverse_gol(input_array, output_variables, n, m, k):
 
         # Join all clauses with commas and wrap with 'And()' to create the final expression
         return 'And(' + ','.join(map(str, clauses)) + ')'
-
 
     def generate_output_constraints(variables, k_range):
         """
@@ -220,21 +260,29 @@ def reverse_gol(input_array, output_variables, n, m, k):
         for k in range(k_range.start, k_range.stop):
             conjunction = []
             for var_name, var_value in variables.items():
-                var = Bool(f"{var_name}_{k}")  # Create a boolean variable with the current k value
+                # Create a boolean variable with the current k value
+                var = Bool(f"{var_name}_{k}")
                 if var_value:
-                    conjunction.append(var)  # Add the variable if its truth value is True
+                    # Add the variable if its truth value is True
+                    conjunction.append(var)
                 else:
-                    conjunction.append(Not(var))  # Add the negation of the variable if its truth value is False
-            s.add(And(conjunction))  # Add the conjunction of variables for the current k to the solver
+                    # Add the negation of the variable if its truth value is False
+                    conjunction.append(Not(var))
+            # Add the conjunction of variables for the current k to the solver
+            s.add(And(conjunction))
 
-        output_constraints = f'{s}'  # Convert the solver's constraints to a string
-        output_constraints = output_constraints[1:-1]  # Remove the outermost parentheses
-        output_constraints = f'Or({output_constraints})'  # Wrap the constraints with 'Or()' for SAT solving
+        # Convert the solver's constraints to a string
+        output_constraints = f'{s}'
+        # Remove the outermost parentheses
+        output_constraints = output_constraints[1:-1]
+        # Wrap the constraints with 'Or()' for SAT solving
+        output_constraints = f'Or({output_constraints})'
         return output_constraints
 
-
-    smt_expr = smt_expression(input_array, n, m, k)  # Generate the SMT expression based on input parameters
-    out = f'And({smt_expr}, {generate_output_constraints(output_variables, range(0,k + 1))})'  # Combine SMT expression and output constraints
+    # Generate the SMT expression based on input parameters
+    smt_expr = smt_expression(input_array, n, m, k)
+    # Combine SMT expression and output constraints
+    out = f'And({smt_expr}, {generate_output_constraints(output_variables, range(0, k + 1))})'
     return out
 
 
@@ -255,5 +303,7 @@ def generate_combinations(a, b, c):
     for i in range(1, a + 1):
         for j in range(1, b + 1):
             for k in range(0, c + 1):
-                combinations.append(f'c{i}_{j}_{k}')  # Create a formatted combination and add to the list
-    return ', '.join(combinations)  # Join the list of combinations into a comma-separated string
+                # Create a formatted combination and add to the list
+                combinations.append(f'c{i}_{j}_{k}')
+    # Join the list of combinations into a comma-separated string
+    return ', '.join(combinations)
