@@ -18,36 +18,18 @@ def reverse_gol(input_array, output_variables, n, m, k):
         """
         e = get_kth_element(k, o, n, m)
         a, b, c = map(int, e[1:].split('_'))
-        new_c = c - 1
+        adjacent_coords = [a, b, c]
 
-        def in__bounds(new_a, new_b, new_c):
-            return new_c >= 1 and 0 <= new_a < n and 0 <= new_b < m
-        output = [a, b, c]
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                if i != 0 or j != 0:
-                    new_a = i + a
-                    new_b = j + b
-                    to_add = ""
-                    if in__bounds(new_a, new_b, new_c):
-                        to_add = f'c{a - 1}_{b - 1}_{new_c}'
-                    else:
-                        to_add = 'h'
-                    output.append(to_add)
-        return output
-        # p = f'c{a - 1}_{b - 1}_{c - 1}' if a - \
-        #     1 != 0 and b - 1 != 0 and c - 1 >= 0 else 'h'
-        # q = f'c{a - 1}_{b}_{c - 1}' if a - 1 != 0 and c - 1 >= 0 else 'h'
-        # r = f'c{a - 1}_{b + 1}_{c - 1}' if a - \
-        #     1 != 0 and b + 1 <= m and c - 1 >= 0 else 'h'
-        # s = f'c{a}_{b + 1}_{c - 1}' if b + 1 <= m and c - 1 >= 0 else 'h'
-        # t = f'c{a + 1}_{b + 1}_{c - 1}' if a + \
-        #     1 <= n and b + 1 <= m and c - 1 >= 0 else 'h'
-        # u = f'c{a + 1}_{b}_{c - 1}' if a + 1 <= n and c - 1 >= 0 else 'h'
-        # v = f'c{a + 1}_{b - 1}_{c - 1}' if a + \
-        #     1 <= n and b - 1 != 0 and c - 1 >= 0 else 'h'
-        # w = f'c{a}_{b - 1}_{c - 1}' if b - 1 != 0 and c - 1 >= 0 else 'h'
-        # return a, b, c, p, q, r, s, t, u, v, w
+        for da, db in [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]:
+            expression = ""
+            if da != 0 or db != 0:
+                if 0 < a + da <= n and 0 < b + db <= m and 0 <= c - 1:
+                    expression = f'c{a + da}_{b + db}_{c - 1}'
+                else:
+                    expression = 'h'
+                adjacent_coords.append(
+                    expression)
+        return adjacent_coords
 
     def to_clause(a, b, c, p, q, r, s, t, u, v, w):
         """
@@ -71,37 +53,147 @@ def reverse_gol(input_array, output_variables, n, m, k):
         w = f'Not({w})'
 
         # The large clause is constructed here as a multi-line string.
-        encoding_clauses = []
-        variables = ['p', 'q', 'r', 's', 't', 'u', 'v', 'w']
-        number_of_variables = len(variables)
-
-        def generate_clause(negated_vars, non_negated_vars):
-            negated_with_braces = [f"Not({{{var}}})" for var in negated_vars]
-            non_negated_with_braces = [
-                f"{{{var}}}" for var in non_negated_vars]
-            clause = f"And({','.join(negated_with_braces)},{','.join(non_negated_with_braces)})"
-            return clause
-
-        for i in range(number_of_variables):
-            for j in range(i + 1, number_of_variables):
-                negated_vars = [variables[i], variables[j]]
-                non_negated_vars = [
-                    var for var in variables if var not in negated_vars]
-                current_clause = generate_clause(
-                    negated_vars, non_negated_vars)
-                encoding_clauses.append(current_clause)
-
-        for i in range(number_of_variables):
-            for j in range(i + 1, number_of_variables):
-                for l in range(j + 1, number_of_variables):
-                    negated_vars = [variables[i], variables[j], variables[l]]
-                    non_negated_vars = [
-                        var for var in variables if var not in negated_vars]
-                    current_clause = generate_clause(
-                        negated_vars, non_negated_vars)
-                    encoding_clauses.append(current_clause)
-        alive_dead_clause = ",".join(encoding_clauses)
-        return f"""And(Not(h),c{a}_{b}_{c}==And(Or({alive_dead_clause})))"""
+        return f"""
+             And(Not(h), And(Implies(Or(And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, {u}, {v}, {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, {u}, {v}, {w}),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), {u}, {v}, {w}),
+                And(Not({p}), {q}, {r}, {s}, {t}, Not({u}), {v}, {w}),
+                And(Not({p}), {q}, {r}, {s}, {t}, {u}, Not({v}), {w}),
+                And(Not({p}), {q}, {r}, {s}, {t}, {u}, {v}, Not({w})),
+                And({p}, Not({q}), Not({r}), {s}, {t}, {u}, {v}, {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, {u}, {v}, {w}),
+                And({p}, Not({q}), {r}, {s}, Not({t}), {u}, {v}, {w}),
+                And({p}, Not({q}), {r}, {s}, {t}, Not({u}), {v}, {w}),
+                And({p}, Not({q}), {r}, {s}, {t}, {u}, Not({v}), {w}),
+                And({p}, Not({q}), {r}, {s}, {t}, {u}, {v}, Not({w})),
+                And({p}, {q}, Not({r}), Not({s}), {t}, {u}, {v}, {w}),
+                And({p}, {q}, Not({r}), {s}, Not({t}), {u}, {v}, {w}),
+                And({p}, {q}, Not({r}), {s}, {t}, Not({u}), {v}, {w}),
+                And({p}, {q}, Not({r}), {s}, {t}, {u}, Not({v}), {w}),
+                And({p}, {q}, Not({r}), {s}, {t}, {u}, {v}, Not({w})),
+                And({p}, {q}, {r}, Not({s}), Not({t}), {u}, {v}, {w}),
+                And({p}, {q}, {r}, Not({s}), {t}, Not({u}), {v}, {w}),
+                And({p}, {q}, {r}, Not({s}), {t}, {u}, Not({v}), {w}),
+                And({p}, {q}, {r}, Not({s}), {t}, {u}, {v}, Not({w})),
+                And({p}, {q}, {r}, {s}, Not({t}), Not({u}), {v}, {w}),
+                And({p}, {q}, {r}, {s}, Not({t}), {u}, Not({v}), {w}),
+                And({p}, {q}, {r}, {s}, Not({t}), {u}, {v}, Not({w})),
+                And({p}, {q}, {r}, {s}, {t}, Not({u}), Not({v}), {w}),
+                And({p}, {q}, {r}, {s}, {t}, Not({u}), {v}, Not({w})),
+                And({p}, {q}, {r}, {s}, {t}, {u}, Not({v}), Not({w}))), c{a}_{b}_{c} == c{a}_{b}_{c - 1}),
+                Implies(Or(And(Not({p}), Not({q}), Not({r}), {s}, {t}, {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, Not({s}), {t}, {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, Not({t}), {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, Not({u}), {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, Not({v}), {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, Not({r}), Not({s}), {t}, {u}, {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, Not({t}), {u}, {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, Not({u}), {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, {u}, Not({v}), {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, Not({s}), Not({t}), {u}, {v}, {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, Not({u}), {v}, {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, {u}, Not({v}), {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), Not({u}), {v}, {w}),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), {u}, Not({v}), {w}),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, {t}, Not({u}), Not({v}), {w}),
+                And(Not({p}), {q}, {r}, {s}, {t}, Not({u}), {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, Not({q}), Not({r}), Not({s}), {t}, {u}, {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, Not({t}), {u}, {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, Not({u}), {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, {u}, Not({v}), {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, Not({s}), Not({t}), {u}, {v}, {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, Not({u}), {v}, {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, {u}, Not({v}), {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, Not({t}), Not({u}), {v}, {w}),
+                And({p}, Not({q}), {r}, {s}, Not({t}), {u}, Not({v}), {w}),
+                And({p}, Not({q}), {r}, {s}, Not({t}), {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, {t}, Not({u}), Not({v}), {w}),
+                And({p}, Not({q}), {r}, {s}, {t}, Not({u}), {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, Not({r}), Not({s}), Not({t}), {u}, {v}, {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, Not({u}), {v}, {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, {u}, Not({v}), {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, {u}, {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, Not({t}), Not({u}), {v}, {w}),
+                And({p}, {q}, Not({r}), {s}, Not({t}), {u}, Not({v}), {w}),
+                And({p}, {q}, Not({r}), {s}, Not({t}), {u}, {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, {t}, Not({u}), Not({v}), {w}),
+                And({p}, {q}, Not({r}), {s}, {t}, Not({u}), {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, Not({s}), Not({t}), Not({u}), {v}, {w}),
+                And({p}, {q}, {r}, Not({s}), Not({t}), {u}, Not({v}), {w}),
+                And({p}, {q}, {r}, Not({s}), Not({t}), {u}, {v}, Not({w})),
+                And({p}, {q}, {r}, Not({s}), {t}, Not({u}), Not({v}), {w}),
+                And({p}, {q}, {r}, Not({s}), {t}, Not({u}), {v}, Not({w})),
+                And({p}, {q}, {r}, Not({s}), {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, {s}, Not({t}), Not({u}), Not({v}), {w}),
+                And({p}, {q}, {r}, {s}, Not({t}), Not({u}), {v}, Not({w})),
+                And({p}, {q}, {r}, {s}, Not({t}), {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, {s}, {t}, Not({u}), Not({v}), Not({w}))), c{a}_{b}_{c}),
+                Implies(And(Not(c{a}_{b}_{c - 1})), Not(Or(And(Not({p}), Not({q}), Not({r}), {s}, {t}, {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, Not({s}), {t}, {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, Not({t}), {u}, {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, Not({u}), {v}, {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, Not({v}), {w}),
+                And(Not({p}), Not({q}), {r}, {s}, {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, Not({r}), Not({s}), {t}, {u}, {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, Not({t}), {u}, {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, Not({u}), {v}, {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, {u}, Not({v}), {w}),
+                And(Not({p}), {q}, Not({r}), {s}, {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, Not({s}), Not({t}), {u}, {v}, {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, Not({u}), {v}, {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, {u}, Not({v}), {w}),
+                And(Not({p}), {q}, {r}, Not({s}), {t}, {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), Not({u}), {v}, {w}),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), {u}, Not({v}), {w}),
+                And(Not({p}), {q}, {r}, {s}, Not({t}), {u}, {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, {t}, Not({u}), Not({v}), {w}),
+                And(Not({p}), {q}, {r}, {s}, {t}, Not({u}), {v}, Not({w})),
+                And(Not({p}), {q}, {r}, {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, Not({q}), Not({r}), Not({s}), {t}, {u}, {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, Not({t}), {u}, {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, Not({u}), {v}, {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, {u}, Not({v}), {w}),
+                And({p}, Not({q}), Not({r}), {s}, {t}, {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, Not({s}), Not({t}), {u}, {v}, {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, Not({u}), {v}, {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, {u}, Not({v}), {w}),
+                And({p}, Not({q}), {r}, Not({s}), {t}, {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, Not({t}), Not({u}), {v}, {w}),
+                And({p}, Not({q}), {r}, {s}, Not({t}), {u}, Not({v}), {w}),
+                And({p}, Not({q}), {r}, {s}, Not({t}), {u}, {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, {t}, Not({u}), Not({v}), {w}),
+                And({p}, Not({q}), {r}, {s}, {t}, Not({u}), {v}, Not({w})),
+                And({p}, Not({q}), {r}, {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, Not({r}), Not({s}), Not({t}), {u}, {v}, {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, Not({u}), {v}, {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, {u}, Not({v}), {w}),
+                And({p}, {q}, Not({r}), Not({s}), {t}, {u}, {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, Not({t}), Not({u}), {v}, {w}),
+                And({p}, {q}, Not({r}), {s}, Not({t}), {u}, Not({v}), {w}),
+                And({p}, {q}, Not({r}), {s}, Not({t}), {u}, {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, {t}, Not({u}), Not({v}), {w}),
+                And({p}, {q}, Not({r}), {s}, {t}, Not({u}), {v}, Not({w})),
+                And({p}, {q}, Not({r}), {s}, {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, Not({s}), Not({t}), Not({u}), {v}, {w}),
+                And({p}, {q}, {r}, Not({s}), Not({t}), {u}, Not({v}), {w}),
+                And({p}, {q}, {r}, Not({s}), Not({t}), {u}, {v}, Not({w})),
+                And({p}, {q}, {r}, Not({s}), {t}, Not({u}), Not({v}), {w}),
+                And({p}, {q}, {r}, Not({s}), {t}, Not({u}), {v}, Not({w})),
+                And({p}, {q}, {r}, Not({s}), {t}, {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, {s}, Not({t}), Not({u}), Not({v}), {w}),
+                And({p}, {q}, {r}, {s}, Not({t}), Not({u}), {v}, Not({w})),
+                And({p}, {q}, {r}, {s}, Not({t}), {u}, Not({v}), Not({w})),
+                And({p}, {q}, {r}, {s}, {t}, Not({u}), Not({v}), Not({w})))), Not(c{a}_{b}_{c}))))"""
 
     def get_kth_element(k, c, n, m):
         """
